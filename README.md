@@ -125,7 +125,7 @@ Leave the rest of the values as default and press "Save". This creates the datas
 
 Navigate to Accounts > Users, and press the big "+" to add a user:
 
-![](res/add_user.jpg)
+![](res/add_user.png)
 
 Populate the resulting form as follows:
 ```	
