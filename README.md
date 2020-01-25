@@ -574,14 +574,14 @@ $ nano cloud.mydomain.com.conf
 Add the following content to the file:
 
 ```
-	<VirtualHost *:80>
-		DocumentRoot "/usr/local/www/nextcloud"
-		ServerName cloud.mydomain.com
-		<FilesMatch \.php$>
-			SetHandler "proxy:fcgi://127.0.0.1:9000/"
-		</FilesMatch>
-		DirectoryIndex /index.php index.php
-	</VirtualHost>
+<VirtualHost *:80>
+	DocumentRoot "/usr/local/www/nextcloud"
+	ServerName cloud.mydomain.com
+	<FilesMatch \.php$>
+		SetHandler "proxy:fcgi://127.0.0.1:9000/"
+	</FilesMatch>
+	DirectoryIndex /index.php index.php
+</VirtualHost>
 ```
 Remember to replace cloud.mydomain.com with the domain relevant to you. Save and Exit (Ctrl + X). Now, lets discuss what's going on here. The first line, DocumentRoot, defines the "root", or top level directory from which to serve content. This means that using the URL http://cloud.mydomain.com will direct a user to files contained within this path; in this case /usr/local/www/nextcloud. Additionally, subdirectories within the DocumentRoot will be accessible as a path specification to the URL. As an example, lets assume there is a directory /usr/local/www/nextcloud/data, containing a file test.php. This would be accessible from http://cloud.mydomain.com/data/test.php. It's important that the DocumentRoot points to the top level of the Nextcloud installation, as this is where index.php lies, which will present the Nextcloud user interface.
 
@@ -735,7 +735,7 @@ Add the following (assuming it's blank, if not just add the job). The crontab he
 # |		|		|		month of the year (1-12),
 # |		|		|		|		day of the week (0-6 with 0=Sunday).
 # |		|		|		|		|		commands
-  */15	*		*		*		*		/usr/local/bin/php -f /usr/local/www/nextcloud/cron.php
+  */15		*		*		*		*		/usr/local/bin/php -f /usr/local/www/nextcloud/cron.php
 ```
 
 Save and Exit (Ctrl + X), and the www crontab should be configured.
