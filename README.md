@@ -1,4 +1,4 @@
-# How to install Nextcloud on FreeNAS 11.2 in an iocage jail with hardened security
+# How to install Nextcloud on FreeNAS in an iocage jail with hardened security
 
 I've recently been through the process of standing up my own personal cloud server, and found that there were a few points of difficulty not directly covered in existing guides on the topic (such as improving security/hardening the server), and a number of the guides on the topic suggested implementing bad practices, such as the use of mod_php (I'll be using php-fpm!). My aim here is to be as explicit as possible about the process I followed so that even a relatively new beginner is able to follow them. A lot of this is adapted from [dureal99d's post](https://forums.freenas.org/index.php?threads/how-to-install-nextcloud-13-in-freenas-with-all-checks-passed-updated-to-use-iocage.61934/) on the same topic, who did a great job at explaining the process, however it discussed the installation of Nextcloud 13, and the certificate installation process was unsuccessful for me so my thought is to share my learnings to save the next person the trouble. The target audience for this guide is the person with very little exposure to the command line in either Linux or FreeBSD. With this in mind, my aim is to be complete as possible with the information I provide, and also to provide some context about *why* certain tasks are being undertaken rather than just direction on which commands to run. A disclaimer to this is that I am by no means an expert, and am still learning, so if you spot any errors or have any suggestions please leave a comment below!
 
@@ -271,6 +271,7 @@ Esc
 a (leave editor)
 a (save changes)
 ```
+
 ### Install required packages
 
 Now that the pkg repository has been updated, we can go ahead and install the necessary packages. The packages we will install are as follows:
@@ -551,6 +552,7 @@ This command changes the ownership recursively of the specified folder (folder a
 ```bash
 chown -R user:group /path/to/directory
 ```
+
 #### Create a VirtualHost definition for Nextcloud
 
 A Virtual Host (or vhost) definition determines how a server processes an incoming request. This is where a range of configuration options for a site can be set, depending on both the IP and port which a request comes through on. A Virtual Host definition begins with the <VirtualHost> directive, which takes both an IP and a port as a parameter. As an example, the following definition processes requests for IP 192.168.0.10 on port 80:
@@ -595,7 +597,7 @@ To be clear here:
 2. If your domain is only available locally, cloud.mydomain.com must resolve to a local IP
 3. OR, it must be a local IP.
 
-The next directive, \<FilesMatch\>, matches all files containing .php in the title and assigns the fastCGI proxy module we set up earlier as the handler. This allows us to use php files, and serve php content using php-fpm.
+The next directive, `<FilesMatch>`, matches all files containing .php in the title and assigns the fastCGI proxy module we set up earlier as the handler. This allows us to use php files, and serve php content using php-fpm.
 
 More reading on Virtual Host definitions are available in the apache documentation [[3]](https://httpd.apache.org/docs/2.4/vhosts/name-based.html) [[4]](https://httpd.apache.org/docs/2.4/vhosts/details.html) [[5]](https://httpd.apache.org/docs/2.4/vhosts/examples.html).
 
@@ -622,7 +624,9 @@ Database host = localhost:/tmp/mysql.sock
 
 In the terminal, navigate to the Nextcloud config file:
 
-	$ nano /usr/local/www/nextcloud/config/config.php
+```bash
+$ nano /usr/local/www/nextcloud/config/config.php
+```
 
 Add your domain name to the trusted domains array. Adding cloud.mydomain.com would look like the following:
 ```php
@@ -714,6 +718,7 @@ Performing sanity check on apache24 configuration:
 Syntax OK
 Starting apache24.
 ```
+
 #### Configure Cron jobs:
 
 [Cron](https://www.freebsd.org/doc/handbook/configtuning-cron.html) is one of the most useful utilities in FreeBSD. It's a utility that runs in the background and regularly checks "/etc/crontab" for tasks to execute and searches "/var/cron/tabs" for custom crontab files. These files are used to schedule tasks which cron runs at the specified times. Each entry in a crontab defines a task to run, and is known as a *cron job*. There are two types of configuration files, the *system* crontab, and the *user* crontab.
@@ -943,8 +948,8 @@ UPDATE_NAME="aide_update.txt"
 /usr/bin/tail -20 /tmp/myAide.txt >> /tmp/$MYFILENAME
 /bin/echo "****************DONE******************" >> /tmp/$MYFILENAME
 /usr/bin/mail -s"$MYFILENAME `date`" john.smith75@gmail.com < /tmp/$MYFILENAME
-mv /var/db/aide/databases/aide.db /var/db/aide/databases/archive/aide-$MYDATE.db
 /usr/local/bin/aide --update >> /tmp/$UPDATE_NAME
+mv /var/db/aide/databases/aide.db /var/db/aide/databases/archive/aide-$MYDATE.db
 mv /var/db/aide/databases/aide.db.new /var/db/aide/databases/aide.db
 ```
 Change the email john.smith75@gmail.com to the recipient email you would like these change logs sent to. Save and Exit (Ctrl + X).We need to create a directory for the archived logs, and change the permissions so that it can be executed by the root user:
@@ -1009,7 +1014,7 @@ daily_submit_queuerun="NO"
 ```
 Save and Exit (Ctrl + X). FreeBSD uses /etc/mail/mailer.conf to map the expected Sendmail binaries to the location of the new binaries, and so we need to update this file to point to the right location. Note that this likely isn't a necessary step if you deviated from the guide and installed postfix using ports, as this file is updated during the installation process. If you installed using pkg however (as this guide suggested), open the mailer configuration file:
 ```bash
-	$ nano /etc/mail/mailer.conf
+$ nano /etc/mail/mailer.conf
 ```
 Comment out the current entries, and paste the new binary locations below it. The file should end up looking like this:
 ```
@@ -1324,6 +1329,7 @@ Save and exit (Ctrl + X). Now create the directory for the SSLSessionCache:
 $ mkdir /var/log/apache
 $ service apache24 restart
 ```
+
 ### Use a dedicated domain for Nextcloud
 
 Using a dedicated domain, such as cloud.domain.com instead of domain.com/nextcloud, offers a number of benefits associated with the Same-Origin-Policy. This is primarily that it preventing clients from *reading* responses from different domains, which is important in preventing malicious code in other tabs you may have executing on your Nextcloud instance. [Hendrik Brummermann illustrated this with a good example in his Stack Overflow answer](https://security.stackexchange.com/questions/8264/why-is-the-same-origin-policy-so-important/72569#72569):
@@ -1334,7 +1340,7 @@ It's obvious that giving any other tab you have open permission to act as your u
 
 ### Ensure that your Nextcloud instance is installed in a DMZ
 
-A DMZ, or demilitarized zone, is a physical or logical subnetwork that contains and exposes external facting services to an untrusted network such as the internet. The purpose of this is to add an additional layer of security to a LAN. This is achieved by placing a firewall between the LAN and the DMZ, limiting the exposure to the LAN if the DMZ is compromised. See [here](https://en.wikipedia.org/wiki/DMZ_(computing)) for more detail. One possible configuration for this is depicted below:
+A DMZ, or demilitarized zone, is a physical or logical subnetwork that contains and exposes external facing services to an untrusted network such as the internet. The purpose of this is to add an additional layer of security to a LAN. This is achieved by placing a firewall between the LAN and the DMZ, limiting the exposure to the LAN if the DMZ is compromised. See [here](https://en.wikipedia.org/wiki/DMZ_(computing)) for more detail. One possible configuration for this is depicted below:
 
 ![](res/DMZ.png)
 
@@ -1510,7 +1516,7 @@ There are a range of free DDNS providers, and so this may be the cheapest option
 AND THAT'S IT! YOU'RE DONE! If everything works correctly, give yourself a pat on the back because this was a pretty involved process. If you've noticed any errors with this guide, or if you think certain steps could be improved with more clarity, or you just have some feedback, please leave a comment to let me know.
 
 
-## Updgrading
+## Upgrading
 
 To upgrade your Nextcloud server, first navigate to the Nextcloud jail shell. From the nextcloud jail shell, issue the following commands:
 ```bash
@@ -1547,11 +1553,12 @@ This will tell you if it is running or not. The second issue I ran into was a pe
 
 There are a number of places you can seek help regarding any issues you might be having with Nextcloud on FreeNAS:
 
-1. [Nextcloud forums](https://help.nextcloud.com/)
-2. Reddit
+1. [Nextcloud Forums](https://help.nextcloud.com/)
+2. [FreeNAS Forums](https://www.ixsystems.com/community/threads/how-to-manually-install-nextcloud-on-freenas-in-an-iocage-jail-with-hardened-security.72016/)
+3. Reddit
 	1. [r/nextcloud](https://www.reddit.com/r/NextCloud/)
 	2. [r/freenas](https://www.reddit.com/r/freenas/)
-3. [Freenode IRC](https://freenode.net/) - server: irc.freenode.net, and the following channels
+4. [Freenode IRC](https://freenode.net/) - server: irc.freenode.net, and the following channels
 	- #nextcloud
 	- #freenas
 	- ##letsencrypt
