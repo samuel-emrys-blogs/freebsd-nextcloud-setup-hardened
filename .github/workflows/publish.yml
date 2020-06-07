@@ -1,0 +1,33 @@
+name: Publish Blog Post
+
+on:
+  push:
+    branches: 
+      - master
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.7'
+    - name: Install dependencies
+      run: |
+        wget https://github.com/jgm/pandoc/releases/download/2.9.2.1/pandoc-2.9.2.1-1-amd64.deb -O /tmp/pandoc.deb
+        sudo dpkg -i /tmp/pandoc.deb
+        python -m pip install --upgrade pip
+        pip install git+https://github.com/samuel-emrys/gwbridge.git
+    - name: Publish
+      run: |
+        gwbridge publish --client-key ${{ secrets.WP_CLIENT_KEY }} --client-secret ${{ secrets.WP_CLIENT_SECRET }} --resource-owner-key ${{ secrets.WP_RESOURCE_OWNER_KEY }} --resource-owner-secret ${{ secrets.WP_RESOURCE_OWNER_SECRET }}
+    - name: Update metadata
+      run: |
+        git config --global user.name 'Samuel Dowling'
+        git config --global user.email 'samuel-emrys@users.noreply.github.com'
+        git commit -am "Automated metadata update"
+        git push
