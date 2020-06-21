@@ -13,25 +13,25 @@ One thing I've noticed a lot of people get hung up on is dataset structure, so t
     │   │   ├── config
     │   │   ├── themes
     │   │   ├── db
-	└── iocage
-    	├── ...
-    	├── jails
-    	│   └── nextcloud
-    	└── ...
+    └── iocage
+        ├── ...
+        ├── jails
+        │   └── nextcloud
+        └── ...
 ```
 
 
-According to the [Nextcloud 14 Manual](https://docs.nextcloud.com/server/14/admin_manual/maintenance/restore.html), there are four things required to restore a Nextcloud installation:
+According to the [Nextcloud Documentation](https://docs.nextcloud.com/server/latest/admin_manual/maintenance/restore.html), there are four things required to restore a Nextcloud installation:
 1. The configuration directory
 2. The data directory
 3. The database
 4. The theme directory
 
-Therefore, it makes sense to make this data independent of the jail (more on this later). This means that if for whatever reason your Nextcloud jail has been broken or deleted, you should be able to restore back to your previous configuration with minimal hassle. In the above structure, the 'cloud' directory represents the data directory; this is where all of your files will be stored. It's important that this is on your primary storage pool so that it can grow in size as required. I've stored the remaining data in their own datasets on my jailhouse pool. To organise this, I've created an 'app' dataset which holds a dataset for each jail I create. As can be seen, there is a dataset named 'nextcloud', which then contains 'config', 'themes' and 'db' datasets for the required information.
+Therefore, it makes sense to make this data independent of the jail (more on this later). This means that if for whatever reason your Nextcloud jail has been broken or deleted, you should be able to restore back to your previous configuration with minimal hassle. Note that this _doesn't_ serve as a backup for the purposes of upgrading, however it will afford you some ability to nuke the jail without risking the loss of data. In the above structure, the 'cloud' directory represents the data directory; this is where all of your files will be stored. It's important that this is on your primary storage pool so that it can grow in size as required. I've stored the remaining data in their own datasets on my jailhouse pool. To organise this, I've created an 'app' dataset which holds a dataset for each jail I create. As can be seen, there is a dataset named 'nextcloud', which then contains 'config', 'themes' and 'db' datasets for the required information.
 
 The remaining dataset is the 'iocage' dataset. This is created automatically when you create a jail, so you don't need to worry about doing anything here, however it is important to note that this is where the local storage for your iocage jails is held. Specifically, in jails > jailname, or in this case jails > nextcloud. A number of other datasets are created within the iocage dataset, however these aren't particularly relevant to this guide, so if you see them and wonder if they're supposed to be there; don't stress, they are.
 
-I'm sure many of you will have organised your datasets differently - that's fine; this has worked well for me, feel free to adopt it, or don't; it will be the context in which I explain this guide though. For those of you who do want to adopt it, and are confused about how to go about it, I'll explain it below. At the time of writing, the current version of FreeNAS is 11.2-RC2. This is an awkward time, as both the new and old user interfaces are present. For longevity, this explanation will be given in terms of the new interface, as this is most likely to be more relevant to new users. If you're using the legacy UI, the steps will be the same, however the buttons will be in different spots.
+I'm sure many of you will have organised your datasets differently - that's fine; this has worked well for me, feel free to adopt it, or don't; it will be the context in which I explain this guide though. For those of you who do want to adopt it, and are confused about how to go about it, I'll explain it below.
 
 ## Create Your Datasets
 
@@ -45,11 +45,13 @@ Expand your primary storage pool. In the right most column of the resulting tabl
 
 Select "Add Dataset". 
 Populate the form with the following:
+
 ```
 Name: cloud
 Compression level: lz4
 Enable atime: Off 
 ```
+
 i.e:
 
 ![](res/addDataset_form.png)
@@ -59,15 +61,18 @@ Note that the atime value is set to off, which is different from the default. Fr
 Leave the rest of the values as default and press "Save". This creates the dataset /vault/cloud
 
 ### Application Dataset
+
 If you don't already have a folder for your application data, go ahead and create that now. If you don't have a dedicated pool for your jails or an SSD, it's not crucial, so just put this on whatever pool is most appropriate for you. My recommendation would be to maintain the data structure listed earlier however, so have an entirely separate dataset earmarked for this purpose.
 
 Select "Add Dataset". 
 Populate the form with the following:
+
 ```
 Name: apps
 Compression level: lz4
 Enable atime: On 
 ```
+
 Note that here, atime is set to the default value of 'on'. It is enabled here because application data is considered less critical as lower performance here won't impact the usability experience materially.
 
 Leave the rest of the values as default and press "Save". In my case, I've placed this on the jailhouse pool and this creates the dataset /jailhouse/apps
@@ -77,11 +82,13 @@ Leave the rest of the values as default and press "Save". In my case, I've place
 As described previously, select the "apps" dataset and select "Add Dataset"
 
 Populate the form with the following:
+
 ```
 Name: nextcloud
 Compression Level: lz4
 Enable atime: On
 ```
+
 Leave the rest of the values as default and press "Save". This creates the dataset /jailhouse/apps/nextcloud 
 
 ### Nextcloud Database Dataset
@@ -89,11 +96,13 @@ Leave the rest of the values as default and press "Save". This creates the datas
 Select the "apps/nextcloud" dataset and select "Add Dataset"
 
 Populate the form with the following:
+
 ```
 Name: db
 Compression Level: lz4
 Enable atime: Off
 ```
+
 Again, note that in this case atime is off. Leave the rest of the values as default and press "Save". The database will see steady read and write operations, so performance is a factor here. This creates the dataset /jailhouse/apps/nextcloud/db, and will be used to store the nextcloud database
 
 ### Nextcloud Configuration Dataset
@@ -101,11 +110,13 @@ Again, note that in this case atime is off. Leave the rest of the values as defa
 Select the "apps/nextcloud" dataset and select "Add Dataset"
 
 Populate the form with the following:
+
 ```
 Name: config
 Compression Level: lz4
 Enable atime: On
 ```
+
 Leave the rest of the values as default and press "Save". This creates the dataset /jailhouse/apps/nextcloud/config, and will store configuration settings for Nextcloud
 
 ### Nextcloud Themes Dataset
@@ -113,11 +124,13 @@ Leave the rest of the values as default and press "Save". This creates the datas
 Select the "apps/nextcloud" dataset and select "Add Dataset"
 
 Populate the form with the following:
+
 ```
 Name: themes
 Compression Level: lz4
 Enable atime: On
 ```
+
 Leave the rest of the values as default and press "Save". This creates the dataset /jailhouse/apps/nextcloud/themes
 
 
@@ -128,16 +141,18 @@ Navigate to Accounts > Users, and press the big "+" to add a user:
 ![](res/add_user.png)
 
 Populate the resulting form as follows:
-```	
+
+```
 Username: mysql
 Full Name: MySQL User
 User ID: 88
 New Primary Group: Checked
 Enable Password login: No
 ```
+
 ![](res/add_mysql_user_form.png)
 
-Now press Save. Navigate back to your "apps" dataset: Storage > Pools, and expand jailhouse > apps >nextcloud. To edit the permissions, select the three dots in the rightmost column corresponding to each dataset, and select "Edit Permissions" as shown below:
+Now press Save. Navigate back to your "apps" dataset: Storage > Pools, and expand jailhouse > apps > nextcloud. To edit the permissions, select the three dots in the rightmost column corresponding to each dataset, and select "Edit Permissions" as shown below:
 
 ![](res/dataset_row.png)
 
@@ -146,30 +161,36 @@ Now press Save. Navigate back to your "apps" dataset: Storage > Pools, and expan
 Now, for each dataset we want to make the following changes:
 
 db dataset:
+
 ```
 User: mysql
 Group: mysql
 ```
+
 ![](res/db_permissions.png)
 
 config dataset:
 Note that the 'www' user and group should already exist, there is no need to create them.
+
 ```
 User: www
 Group: www
 ```
+
 ![](res/config_permissions.png)
 
 themes dataset:
+
 ```
 User: www
 Group: www
 ```
+
 ![](res/themes_permissions.png)
 
 ## Create an iocage jail:
 
-Now it's time to create the jail. This can be done with the web UI, however this guide will present the instructions for the command line interface. First, you'll need to SSH into your FreeNAS host. Instructions on how to configure SSH are available [here](https://www.familybrown.org/dokuwiki/doku.php?id=fester:ssh_setup). The gist of this is that you'll need to enable the SSH service in the FreeNAS UI and configure the public/private key pair for your user, and then make a connection. From a unix terminal (macOS, Linux), this will look like the following, assuming a FreeNAS host local IP of 192.168.0.9:
+Now it's time to create the jail. This can be done with the web UI, however I prefer to use the command line interface, and so the rest of these instructions will be presented there. This guide, will therefore present the instructions for the command line interface. First, you'll need to SSH into your FreeNAS host. Instructions on how to configure SSH are available [here](https://www.familybrown.org/dokuwiki/doku.php?id=fester:ssh_setup). The gist of this is that you'll need to enable the SSH service in the FreeNAS UI and configure the public/private key pair for your user, and then make a connection. From a unix terminal (macOS, Linux), this will look like the following, assuming a FreeNAS host local IP of 192.168.0.9:
 
 ```bash
 $ ssh root@192.168.0.9
@@ -264,7 +285,7 @@ $ iocage console nextcloud
 This will spawn the default shell (in my case it was `csh`), and you should be presented with something similar to the following:
 
 ```bash
-root@freenas:~# iocage console nextcloud
+root@freenas:~ $ iocage console nextcloud
 FreeBSD 11.3-RELEASE-p7 (FreeNAS.amd64) #0 r325575+ca0f1a6ba25(HEAD): Tue Apr 21 20:46:20 UTC 2020
 
 Welcome to FreeBSD!
@@ -327,40 +348,54 @@ ERROR 1045 (28000): Access denied for user 'root'@'localhost' (using password: N
 Follow this procedure:
 1. Press Ctrl + C to stop the script
 2. Enter the following command to stop the mysql server
-```bash		
-	$ /usr/local/etc/rc.d/mysql-server stop
-```
-3. Then enter the following command:
+
 ```bash
-	$ mysqld_safe --skip-grant-tables & 
-	$ /usr/local/etc/rc.d/mysql-server start
+$ /usr/local/etc/rc.d/mysql-server stop
 ```
+
+3. Then enter the following command:
+
+```bash
+$ mysqld_safe --skip-grant-tables & 
+$ /usr/local/etc/rc.d/mysql-server start
+```
+
 4. Once again stop the script by pressing Ctrl + C
 5. Re-run the wizard script
+
 ```bash
-	$ mysql_secure_installation
+$ mysql_secure_installation
 ```
+
 This should resolve this issue. Provide the following answers to the prompts:
+
 ```
 Enter current password for root (enter for none):
 ```
+
 Press enter as there is no password
+
 ```
 Switch to unix_socket authentication [Y/n] y
 Set root password? [Y/n] y
 New password: 
 ```
+
 Enter a new password of your choice (don't forget it!)
+
 ```
 Re-enter new password: 
 ```
+
 Re-enter the password
+
 ```
 Remove anonymous users? [Y/n] y
 Disallow root login remotely? [Y/n] y
 Remove test database and access to it? [Y/n] y
 Reload privilege tables now? [Y/n] y
 ```
+
 MariaDB is now configured. At this stage, the installer should have created a user named 'mysql', and a group named 'mysql' within the jail, with UID=88 and GID=88 respectively. You'll recall earlier in the guide, we created a mysql user and group with these UID and GID. It is **imperative** that the UID and GID of the user and group created earlier on the FreeNAS host, and the user and group created during the mysql installation within the jail match. If they don't, you will run into permission issues, so go ahead and change the ID of the user and group on the FreeNAS host if this is the case for you.
 
 #### Installing Nextcloud
@@ -405,7 +440,7 @@ root@nextcloud:/tmp $ chown -R www:www /usr/local/www/nextcloud
 The following command installs PHP 7.4 and the packages that Nextcloud requires to run:
 
 ```bash
-pkg install php74 php74-bz2 php74-ctype php74-curl php74-dom php74-exif php74-fileinfo php74-filter php74-gd php74-iconv php74-intl php74-json php74-ldap php74-mbstring php74-opcache php74-openssl php74-pdo php74-pdo_mysql php74-pecl-APCu php74-pecl-imagick php74-pecl-redis php74-posix php74-session php74-simplexml php74-xml php74-xmlreader php74-xmlwriter php74-xsl php74-zip php74-zlib php74-bcmath php74-gmp
+$ pkg install php74 php74-bz2 php74-ctype php74-curl php74-dom php74-exif php74-fileinfo php74-filter php74-gd php74-iconv php74-intl php74-json php74-ldap php74-mbstring php74-opcache php74-openssl php74-pdo php74-pdo_mysql php74-pecl-APCu php74-pecl-imagick php74-pecl-redis php74-posix php74-session php74-simplexml php74-xml php74-xmlreader php74-xmlwriter php74-xsl php74-zip php74-zlib php74-bcmath php74-gmp
 ```
 
 To use a newer version of PHP, these packages will need to be replaced with the appropriate version. An example might be that when PHP 7.5 is released and you want to upgrade, you would remove `php74-bz2` and install `php75-bz2`. 
@@ -755,39 +790,21 @@ In the terminal, navigate to the Nextcloud config file:
 $ nano /usr/local/www/nextcloud/config/config.php
 ```
 
-Add your domain name to the trusted domains array. Adding cloud.mydomain.com would look like the following:
+This should look similar to the following:
 
 ```php
 <?php
 $CONFIG = array (
-  'apps_paths' =>
-  array (
-    0 =>
-    array (
-      'path' => '/usr/local/www/nextcloud/apps',
-      'url' => '/apps',
-      'writable' => true,
-    ),
-    1 =>
-    array (
-      'path' => '/usr/local/www/nextcloud/apps-pkg',
-      'url' => '/apps-pkg',
-      'writable' => false,
-    ),
-  ),
-  'logfile' => '/var/log/nextcloud/nextcloud.log',
-  'memcache.local' => '\OC\Memcache\APCu',
-  'instanceid' => 'ocy4qsadkxhl',
-  'passwordsalt' => '44RcdZYDK/TNVGLyCxVPT67M88sjhJ',
-  'secret' => 'aCLhfzgCaLGyfVp5upS4mXpP2sduzZw6FGsAZtUwhpduUZji',
+  'instanceid' => 'ocp08umeaycm',
+  'passwordsalt' => 'OReCjQueLIb0X7mwn33XiklPPPdE/4',
+  'secret' => 'RlWiGbC46jxnfK00Mrjp5NHlYySls8YkaGyJKngG3IkNyJ3K',
   'trusted_domains' =>
   array (
-    0 => '192.168.0.10',
-    1 => 'cloud.mydomain.com',
+    0 => '192.168.30.251',
   ),
   'datadirectory' => '/mnt/data',
   'dbtype' => 'mysql',
-  'version' => '14.0.4.2',
+  'version' => '19.0.0.12',
   'overwrite.cli.url' => 'http://192.168.0.10',
   'dbname' => 'nextcloud',
   'dbhost' => 'localhost:/tmp/mysql.sock',
@@ -797,16 +814,50 @@ $CONFIG = array (
   'dbuser' => 'nextcloud_admin',
   'dbpassword' => 'Default123!',
   'installed' => true,
+  'updater.release.channel' => 'stable',
 );
 ```
 
-The line of interest here is 
+Add your domain name to the trusted domains array. You can do this either manually, or with the command below, replacing the domain with whatever is appropriate for you:
+
+```bash
+root@nextcloud:~ $ su -m www -c 'php /usr/local/www/nextcloud/occ config:system:set trusted_domains 1 --value="cloud.mydomain.com"'
+```
+
+The result of this looks like the following:
+
+```php
+<?php
+$CONFIG = array (
+  'instanceid' => 'ocp08umeaycm',
+  'passwordsalt' => 'OReCjQueLIb0X7mwn33XiklPPPdE/4',
+  'secret' => 'RlWiGbC46jxnfK00Mrjp5NHlYySls8YkaGyJKngG3IkNyJ3K',
+  'trusted_domains' =>
+  array (
+    0 => '192.168.30.251',
+    1 => 'cloud.mydomain.com',
+  ),
+  'datadirectory' => '/mnt/data',
+  'dbtype' => 'mysql',
+  'version' => '19.0.0.12',
+  'overwrite.cli.url' => 'http://192.168.0.10',
+  'dbname' => 'nextcloud',
+  'dbhost' => 'localhost:/tmp/mysql.sock',
+  'dbport' => '',
+  'dbtableprefix' => 'oc_',
+  'mysql.utf8mb4' => true,
+  'dbuser' => 'nextcloud_admin',
+  'dbpassword' => 'Default123!',
+  'installed' => true,
+  'updater.release.channel' => 'stable',
+);
+```
+
+The line of interest here is within the `trusted_domains` array:
 
 ```php
 1 => 'cloud.mydomain.com',
 ```
-
-within the `trusted_domains` block. Replace this with your domain. Save and Exit (Ctrl + X).
 
 #### Fix the annoying Apache errors
 
@@ -970,7 +1021,25 @@ Restart the Apache service:
 $ service apache24 restart
 ```
 
-At this stage, your Nextcloud server should be ready to go for local network use. There are, however, a range of security considerations that will be dealt with in the remainder of the guide. These are very important, especially if you intend to open the server to the web.
+At this stage, your Nextcloud server should be ready to go for local network use. However, there may be some security warnings present in the Administration panel. Some common advisories include:
+
+> The database is missing some indexes. Due to the fact that adding indexes on big tables could take some time they were not added automatically. By running "occ db:add-missing-indices" those missing indexes could be added manually while the instance keeps running. Once the indexes are added queries to those tables are usually much faster.
+
+This can be rectified by executing:
+
+```bash
+$ su -m www -c 'php /usr/local/www/nextcloud/occ db:add-missing-indices'
+```
+
+> Some columns in the database are missing a conversion to big int. Due to the fact that changing column types on big tables could take some time they were not changed automatically. By running 'occ db:convert-filecache-bigint' those pending changes could be applied manually. This operation needs to be made while the instance is offline.
+
+This can be rectified by executing:
+
+```bash
+$ su -m www -c 'php /usr/local/www/nextcloud/occ db:convert-filecache-bigint'
+```
+
+Beyond this, there are a range of security considerations that will be dealt with in the remainder of the guide. These are very important, especially if you intend to open the server to the web.
 
 ## Security
 
@@ -1660,19 +1729,144 @@ There are a range of free DDNS providers, and so this may be the cheapest option
 
 AND THAT'S IT! YOU'RE DONE! If everything works correctly, give yourself a pat on the back because this was a pretty involved process. If you've noticed any errors with this guide, or if you think certain steps could be improved with more clarity, or you just have some feedback, please leave a comment to let me know.
 
-
 ## Upgrading
 
-To upgrade your Nextcloud server, first navigate to the Nextcloud jail shell. From the nextcloud jail shell, issue the following commands:
+Nextcloud recommends that you update your server regularly, for all minor and major releases. This will reduce the pain of upgrading later, as major releases __cannot be skipped__. There are two ways to upgrade based on the installation procedure we've followed:
+
+1. [Web Updater](https://docs.nextcloud.com/server/latest/admin_manual/maintenance/update.html)
+2. [Manually](https://docs.nextcloud.com/server/latest/admin_manual/maintenance/manual_upgrade.html)
+
+Please refer to these links for up-to-date information on how to go through the process. Bear in mind that the majority of the commands listed in these guides are for Linux, and so will vary somewhat from what's required in FreeBSD. If you go back through this guide, you should find exemplars of how these commands should be used to adapt them appropriately. One example of a difference is their usage of the `www-data` user; in FreeBSD this is the `www` user.
+
+Using the web updater is a trivial process and so it is left as an exercise for the user. I will however, demonstrate an example of upgrading manually from 18.0.6 to 19.0.0. This is a major version upgrade, at the most recent minor version for version 18. This is the only condition from which you should attempt a major version upgrade. Additionally, it's _very_ important to make sure all of the apps you have installed are compatible with the version you're aiming to upgrade to. This has been a cause of many failed upgrades for me in the past.
+
+1. First, enter maintenance mode
 
 ```bash
-$ pkg update
-$ pkg upgrade nextcloud-php71
-$ cd /usr/local/www/nextcloud
-$ su -m www -c "php ./occ upgrade"
+su -m www -c 'php /usr/local/www/nextcloud/occ maintenance:mode --on'
 ```
 
-It's important that you upgrade in this manner. As tempting as it might be to upgrade using the web interface, the package information will go out of sync if you do. New patches/versions often take a few days after official release to propogate to the FreeBSD pkg repository, so don't stress if it's not immediately available.
+2. Back up your existing Nextcloud Server database, data directory and config.php file.
+
+```bash
+cd /tmp
+root@nextcloud3:/tmp # rsync -Aahx --info=progress2 /mnt/data/ nextcloud-databkp_`date +"%Y%m%d"`/
+root@nextcloud3:/tmp # rsync -Aahx --info=progress2 /usr/local/www/nextcloud/ nextcloud-dirbkp_`date +"%Y%m%d"`/
+root@nextcloud3:/tmp # mysqldump --single-transaction -u root -p nextcloud > nextcloud-sqlbkp_`date +"%Y%m%d"`.bak
+```
+
+This will make copies of `/mnt/data`, `/usr/local/www/nextcloud`, and the MySQL database.
+
+3. Download and unpack the desired Nextcloud Server release from https://download.nextcloud.com/server/releases/ into /tmp
+
+```bash
+root@nextcloud3:/tmp # wget https://download.nextcloud.com/server/releases/nextcloud-19.0.0.tar.bz2
+root@nextcloud3:/tmp # wget https://download.nextcloud.com/server/releases/nextcloud-19.0.0.tar.bz2.sha512
+root@nextcloud3:/tmp # shasum -a 512 -c nextcloud-19.0.0.tar.bz2.sha512
+nextcloud-19.0.0.tar.bz2: OK
+```
+
+4. Stop your web server
+
+```bash
+root@nextcloud3:/tmp # service apache24 stop
+```
+
+5. In case you are running a cron-job for nextcloud's house-keeping disable it by commenting the entry in the crontab file
+
+```bash
+root@nextcloud3:/tmp # crontab -u www -e
+```
+
+Modify the following entry by appending a `#`:
+
+```
+#  */15          *               *               *               *               /usr/local/bin/php -f /usr/local/www/nextcloud/cron.php
+```
+
+6.  Rename your current Nextcloud directory:
+
+```bash
+root@nextcloud3:/tmp # mv /usr/local/www/nextcloud /usr/local/www/nextcloud-old
+```
+
+7. Unpack the new archive to the original location of the old server so that there once again exists /usr/local/www/nextcloud:
+
+```bash
+root@nextcloud3:/tmp # tar -xf nextcloud-19.0.0.tar.bz2 -C /usr/local/www
+```
+
+8. Copy your config.php file in to the new Nextcloud installation
+
+```bash
+root@nextcloud3:/usr/local/www/nextcloud # cp /usr/local/www/nextcloud-old/config/config.php /usr/local/www/nextcloud/config/config.php
+```
+
+9. If you are using 3rd party applications, it may not always be available in the upgraded Nextcloud instance. To check this, compare the list of apps in `/usr/local/www/nextcloud` with those in `/usr/local/www/nextcloud-old`, and copy any not present in `/usr/local/www/nextcloud/apps` from `/usr/local/www/nextcloud-old/apps` to `/usr/local/www/nextcloud/apps`.
+
+10. If you're using any 3rd party themes, make sure to copy them from `/usr/local/www/nextcloud-old/themes` to `/usr/local/www/nextcloud/themes`.
+
+11. Update the file ownership and file permissions of your `/usr/local/www/nextcloud` directory:
+
+```bash
+root@nextcloud3:/tmp # chown -R www:www /usr/local/www/nextcloud
+root@nextcloud3:/tmp # find /usr/local/www/nextcloud -type d -exec chmod 750 {} \;
+root@nextcloud3:/tmp # find /usr/local/www/nextcloud -type f -exec chmod 640 {} \;
+```
+
+12. Restart the web server
+
+```bash
+root@nextcloud3:/tmp # service apache24 start
+```
+
+13. Launch the upgrade from the command line using the `occ` tool. Note that this must be executed from within the Nextcloud installation directory:
+
+```bash
+root@nextcloud3:/usr/local/www/nextcloud # su -m www -c 'php occ upgrade'
+```
+
+14. Re-enable the cron job that was previously disabled
+
+```bash
+root@nextcloud3:/tmp # crontab -u www -e
+```
+
+Modify the entry by removing the `#` so that it looks as follows:
+
+```
+  */15          *               *               *               *               /usr/local/bin/php -f /usr/local/www/nextcloud/cron.php
+```
+
+15. Finally, turn maintenance mode off
+
+```bash
+su -m www -c 'php /usr/local/www/nextcloud/occ maintenance:mode --off'
+```
+
+16. Now, log in to the Administration dashboard and verify the new version number. At this point, you may have additional warnings such as:
+
+> Last background job execution ran 1 hour ago. Something seems wrong.
+
+This can be ignored. This will be rectified within 15 minutes when the next cron job is executed.
+
+> The database is missing some indexes. Due to the fact that adding indexes on big tables could take some time they were not added automatically. By running "occ db:add-missing-indices" those missing indexes could be added manually while the instance keeps running. Once the indexes are added queries to those tables are usually much faster.
+
+As before, execute:
+
+```bash
+$ su -m www -c 'php /usr/local/www/nextcloud/occ db:add-missing-indices'
+```
+
+> The database is missing some optional columns. Due to the fact that adding columns on big tables could take some time they were not added automatically when they can be optional. By running "occ db:add-missing-columns" those missing columns could be added manually while the instance keeps running. Once the columns are added some features might improve responsiveness or usability.
+
+As discussed previously, execute:
+
+```bash
+$ su -m www -c 'php /usr/local/www/nextcloud/occ db:add-missing-columns'
+```
+
+It's possible that other warnings will appear. Follow the instructions provided in the warning using the syntax we have used for the `occ` command previously to rectify them. Additionally, if things go wrong, refer to the [Nextcloud documentation on restoring from backup](https://docs.nextcloud.com/server/latest/admin_manual/maintenance/restore.html) to restore the files we backed up earlier. Otherwise, refer to the [Nextcloud documentation describing the process](https://docs.nextcloud.com/server/latest/admin_manual/maintenance/manual_upgrade.html) for additional information.
 
 ## Debugging
 
