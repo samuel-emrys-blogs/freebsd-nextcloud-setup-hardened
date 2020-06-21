@@ -307,7 +307,7 @@ Introduction to manual pages:  man man
 FreeBSD directory layout:      man hier
 
 Edit /etc/motd to change this login announcement.
-root@nextcloud:~ #
+root@nextcloud:~ $
 ```
 
 Okay, so what we're going to do here is set up what's known as a FAMP stack. This is a derivation of the LAMP stack, which is a popular web server environment configuration. LAMP is an acronym for Linux Apache MySQL PHP. In this case, we're obviously not using Linux, so this becomes the FAMP stack; FreeBSD, Apache, MySQL and PHP.
@@ -1867,7 +1867,7 @@ As discussed previously, execute:
 root@nextcloud:/usr/local/www/nextcloud $ su -m www -c 'php /usr/local/www/nextcloud/occ db:add-missing-columns'
 ```
 
-It's possible that other warnings will appear. Follow the instructions provided in the warning using the syntax we have used for the `occ` command previously to rectify them. Additionally, if things go wrong, refer to the [Nextcloud documentation on restoring from backup](https://docs.nextcloud.com/server/latest/admin_manual/maintenance/restore.html) to restore the files we backed up earlier. Otherwise, refer to the [Nextcloud documentation describing the process](https://docs.nextcloud.com/server/latest/admin_manual/maintenance/manual_upgrade.html) for additional information.
+It's possible that other warnings will appear. Follow the instructions provided in the warning using the syntax we have used for the `occ` command previously to rectify them. Additionally, if things go wrong, refer to the [Nextcloud documentation on restoring from backup](https://docs.nextcloud.com/server/latest/admin_manual/maintenance/restore.html) to restore the files we backed up earlier. Otherwise, refer to the [Nextcloud documentation describing the manual upgrade process](https://docs.nextcloud.com/server/latest/admin_manual/maintenance/manual_upgrade.html) for additional information.
 
 ## Debugging
 
@@ -1914,4 +1914,4 @@ There are a number of places you can seek help regarding any issues you might be
 
 I've found IRC to be a better platform for issues that need to be discussed in some detail, however the communities on the forums and also reddit are typically larger.
 
-This guide is also hosted on [GitHub](https://github.com/samuel-emrys-blogs/freebsd-nextcloud-setup-hardened). If you find any bugs, please feel free to raise an [issue](https://github.com/samuel-emrys-blogs/freebsd-nextcloud-setup-hardened/issues), or submit your own [pull request](https://github.com/samuel-emrys-blogs/freebsd-nextcloud-setup-hardened/pulls)!
+This guide is also hosted on [GitHub](https://github.com/samuel-emrys-blogs/freebsd-nextcloud-setup-hardened). If you find any bugs or have any suggestions, please feel free to raise an [issue](https://github.com/samuel-emrys-blogs/freebsd-nextcloud-setup-hardened/issues), or submit your own [pull request](https://github.com/samuel-emrys-blogs/freebsd-nextcloud-setup-hardened/pulls)!
