@@ -1524,7 +1524,7 @@ root@nextcloud:~ $ su -m www -c 'php /usr/local/www/nextcloud/occ config:system:
 
 Note that this means that your Nextcloud instance won't be available at the jails IP anymore, so if you need that feature, don't set the `overwriteprotocol` field.
 
-If you don't want to configure a reverse proxy to enable HTTPS, a [previous version of this guide]() addresses how to do that. Note however, that this is no longer maintained as it is no longer the recommended process.
+If you don't want to configure a reverse proxy to enable HTTPS, a [previous version of this guide](https://github.com/samuel-emrys-blogs/freebsd-nextcloud-setup-hardened/tree/v1.0.0) addresses how to do that. Note however, that this is no longer maintained as it is no longer the recommended process.
 
 ### Use a dedicated domain for Nextcloud
 
