@@ -800,7 +800,7 @@ $CONFIG = array (
   'secret' => 'RlWiGbC46jxnfK00Mrjp5NHlYySls8YkaGyJKngG3IkNyJ3K',
   'trusted_domains' =>
   array (
-    0 => '192.168.30.251',
+    0 => '192.168.0.10',
   ),
   'datadirectory' => '/mnt/data',
   'dbtype' => 'mysql',
@@ -834,7 +834,7 @@ $CONFIG = array (
   'secret' => 'RlWiGbC46jxnfK00Mrjp5NHlYySls8YkaGyJKngG3IkNyJ3K',
   'trusted_domains' =>
   array (
-    0 => '192.168.30.251',
+    0 => '192.168.0.10',
     1 => 'cloud.mydomain.com',
   ),
   'datadirectory' => '/mnt/data',
@@ -861,7 +861,7 @@ The line of interest here is within the `trusted_domains` array:
 
 #### Fix the annoying Apache errors
 
-To get rid of the following error message when starting and stopping the apache server:
+To get rid of the following error message when starting and stopping the Apache server:
 
 ```
 AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 127.0.0.1. Set the 'ServerName' directive globally to suppress this message
@@ -875,7 +875,7 @@ Starting apache24.
 AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 127.0.0.1. Set the 'ServerName' directive globally to suppress this message when stating apache do the following:
 ```
 
-Open the apache configuration file:
+Open the Apache configuration file:
 
 ```
 $ nano /usr/local/etc/apache24/httpd.conf
@@ -1519,7 +1519,7 @@ root@nextcloud:~ $ su -m www -c 'php /usr/local/www/nextcloud/occ config:system:
 Now, if you want to force the server to only use HTTPS (and I recommend that you do), run the following command:
 
 ```bash
-root@nextcloud2:~ $ su -m www -c 'php /usr/local/www/nextcloud/occ config:system:set overwriteprotocol --value="https"'
+root@nextcloud:~ $ su -m www -c 'php /usr/local/www/nextcloud/occ config:system:set overwriteprotocol --value="https"'
 ```
 
 Note that this means that your Nextcloud instance won't be available at the jails IP anymore, so if you need that feature, don't set the `overwriteprotocol` field.
@@ -1530,9 +1530,9 @@ If you don't want to configure a reverse proxy to enable HTTPS, a [previous vers
 
 Using a dedicated domain, such as cloud.domain.com instead of domain.com/nextcloud, offers a number of benefits associated with the Same-Origin-Policy. This is primarily that it preventing clients from *reading* responses from different domains, which is important in preventing malicious code in other tabs you may have executing on your Nextcloud instance. [Hendrik Brummermann illustrated this with a good example in his Stack Overflow answer](https://security.stackexchange.com/questions/8264/why-is-the-same-origin-policy-so-important/72569#72569):
 
-"*Assume you are logged into Facebook and visit a malicious website in another browser tab. Without the same origin policy JavaScript on that website could do anything to your Facebook account that you are allowed to do. For example read private messages, post status updates, analyse the HTML DOM-tree after you entered your password before submitting the form.*"
+> Assume you are logged into Facebook and visit a malicious website in another browser tab. Without the same origin policy JavaScript on that website could do anything to your Facebook account that you are allowed to do. For example read private messages, post status updates, analyse the HTML DOM-tree after you entered your password before submitting the form.
 
-It's obvious that giving any other tab you have open permission to act as your user is undesireable. 
+It's obvious that giving any other tab you have open permission to act as your user is undesirable. 
 
 ### Ensure that your Nextcloud instance is installed in a DMZ
 
@@ -1743,39 +1743,39 @@ Using the web updater is a trivial process and so it is left as an exercise for 
 1. First, enter maintenance mode
 
 ```bash
-su -m www -c 'php /usr/local/www/nextcloud/occ maintenance:mode --on'
+root@nextcloud:~ $ su -m www -c 'php /usr/local/www/nextcloud/occ maintenance:mode --on'
 ```
 
 2. Back up your existing Nextcloud Server database, data directory and config.php file.
 
 ```bash
 cd /tmp
-root@nextcloud3:/tmp # rsync -Aahx --info=progress2 /mnt/data/ nextcloud-databkp_`date +"%Y%m%d"`/
-root@nextcloud3:/tmp # rsync -Aahx --info=progress2 /usr/local/www/nextcloud/ nextcloud-dirbkp_`date +"%Y%m%d"`/
-root@nextcloud3:/tmp # mysqldump --single-transaction -u root -p nextcloud > nextcloud-sqlbkp_`date +"%Y%m%d"`.bak
+root@nextcloud:/tmp $ rsync -Aahx --info=progress2 /mnt/data/ nextcloud-databkp_`date +"%Y%m%d"`/
+root@nextcloud:/tmp $ rsync -Aahx --info=progress2 /usr/local/www/nextcloud/ nextcloud-dirbkp_`date +"%Y%m%d"`/
+root@nextcloud:/tmp $ mysqldump --single-transaction -u root -p nextcloud > nextcloud-sqlbkp_`date +"%Y%m%d"`.bak
 ```
 
 This will make copies of `/mnt/data`, `/usr/local/www/nextcloud`, and the MySQL database.
 
-3. Download and unpack the desired Nextcloud Server release from https://download.nextcloud.com/server/releases/ into /tmp
+3. Download and unpack the desired Nextcloud Server release from https://download.nextcloud.com/server/releases/ into `/tmp`
 
 ```bash
-root@nextcloud3:/tmp # wget https://download.nextcloud.com/server/releases/nextcloud-19.0.0.tar.bz2
-root@nextcloud3:/tmp # wget https://download.nextcloud.com/server/releases/nextcloud-19.0.0.tar.bz2.sha512
-root@nextcloud3:/tmp # shasum -a 512 -c nextcloud-19.0.0.tar.bz2.sha512
+root@nextcloud:/tmp $ wget https://download.nextcloud.com/server/releases/nextcloud-19.0.0.tar.bz2
+root@nextcloud:/tmp $ wget https://download.nextcloud.com/server/releases/nextcloud-19.0.0.tar.bz2.sha512
+root@nextcloud:/tmp $ shasum -a 512 -c nextcloud-19.0.0.tar.bz2.sha512
 nextcloud-19.0.0.tar.bz2: OK
 ```
 
 4. Stop your web server
 
 ```bash
-root@nextcloud3:/tmp # service apache24 stop
+root@nextcloud:/tmp $ service apache24 stop
 ```
 
 5. In case you are running a cron-job for nextcloud's house-keeping disable it by commenting the entry in the crontab file
 
 ```bash
-root@nextcloud3:/tmp # crontab -u www -e
+root@nextcloud:/tmp $ crontab -u www -e
 ```
 
 Modify the following entry by appending a `#`:
@@ -1787,19 +1787,19 @@ Modify the following entry by appending a `#`:
 6.  Rename your current Nextcloud directory:
 
 ```bash
-root@nextcloud3:/tmp # mv /usr/local/www/nextcloud /usr/local/www/nextcloud-old
+root@nextcloud:/tmp $ mv /usr/local/www/nextcloud /usr/local/www/nextcloud-old
 ```
 
 7. Unpack the new archive to the original location of the old server so that there once again exists /usr/local/www/nextcloud:
 
 ```bash
-root@nextcloud3:/tmp # tar -xf nextcloud-19.0.0.tar.bz2 -C /usr/local/www
+root@nextcloud:/tmp $ tar -xf nextcloud-19.0.0.tar.bz2 -C /usr/local/www
 ```
 
 8. Copy your config.php file in to the new Nextcloud installation
 
 ```bash
-root@nextcloud3:/usr/local/www/nextcloud # cp /usr/local/www/nextcloud-old/config/config.php /usr/local/www/nextcloud/config/config.php
+root@nextcloud:/usr/local/www/nextcloud $ cp /usr/local/www/nextcloud-old/config/config.php /usr/local/www/nextcloud/config/config.php
 ```
 
 9. If you are using 3rd party applications, it may not always be available in the upgraded Nextcloud instance. To check this, compare the list of apps in `/usr/local/www/nextcloud` with those in `/usr/local/www/nextcloud-old`, and copy any not present in `/usr/local/www/nextcloud/apps` from `/usr/local/www/nextcloud-old/apps` to `/usr/local/www/nextcloud/apps`.
@@ -1809,27 +1809,28 @@ root@nextcloud3:/usr/local/www/nextcloud # cp /usr/local/www/nextcloud-old/confi
 11. Update the file ownership and file permissions of your `/usr/local/www/nextcloud` directory:
 
 ```bash
-root@nextcloud3:/tmp # chown -R www:www /usr/local/www/nextcloud
-root@nextcloud3:/tmp # find /usr/local/www/nextcloud -type d -exec chmod 750 {} \;
-root@nextcloud3:/tmp # find /usr/local/www/nextcloud -type f -exec chmod 640 {} \;
+root@nextcloud:/tmp $ chown -R www:www /usr/local/www/nextcloud
+root@nextcloud:/tmp $ find /usr/local/www/nextcloud -type d -exec chmod 750 {} \;
+root@nextcloud:/tmp $ find /usr/local/www/nextcloud -type f -exec chmod 640 {} \;
 ```
 
 12. Restart the web server
 
 ```bash
-root@nextcloud3:/tmp # service apache24 start
+root@nextcloud:/tmp $ service apache24 start
 ```
 
 13. Launch the upgrade from the command line using the `occ` tool. Note that this must be executed from within the Nextcloud installation directory:
 
 ```bash
-root@nextcloud3:/usr/local/www/nextcloud # su -m www -c 'php occ upgrade'
+root@nextcloud:/tmp $ cd /usr/local/www/nextcloud
+root@nextcloud:/usr/local/www/nextcloud $ su -m www -c 'php occ upgrade'
 ```
 
 14. Re-enable the cron job that was previously disabled
 
 ```bash
-root@nextcloud3:/tmp # crontab -u www -e
+root@nextcloud:/usr/local/www/nextcloud $ crontab -u www -e
 ```
 
 Modify the entry by removing the `#` so that it looks as follows:
@@ -1841,7 +1842,7 @@ Modify the entry by removing the `#` so that it looks as follows:
 15. Finally, turn maintenance mode off
 
 ```bash
-su -m www -c 'php /usr/local/www/nextcloud/occ maintenance:mode --off'
+root@nextcloud:/usr/local/www/nextcloud $ su -m www -c 'php /usr/local/www/nextcloud/occ maintenance:mode --off'
 ```
 
 16. Now, log in to the Administration dashboard and verify the new version number. At this point, you may have additional warnings such as:
@@ -1855,7 +1856,7 @@ This can be ignored. This will be rectified within 15 minutes when the next cron
 As before, execute:
 
 ```bash
-$ su -m www -c 'php /usr/local/www/nextcloud/occ db:add-missing-indices'
+root@nextcloud:/usr/local/www/nextcloud $ su -m www -c 'php /usr/local/www/nextcloud/occ db:add-missing-indices'
 ```
 
 > The database is missing some optional columns. Due to the fact that adding columns on big tables could take some time they were not added automatically when they can be optional. By running "occ db:add-missing-columns" those missing columns could be added manually while the instance keeps running. Once the columns are added some features might improve responsiveness or usability.
@@ -1863,7 +1864,7 @@ $ su -m www -c 'php /usr/local/www/nextcloud/occ db:add-missing-indices'
 As discussed previously, execute:
 
 ```bash
-$ su -m www -c 'php /usr/local/www/nextcloud/occ db:add-missing-columns'
+root@nextcloud:/usr/local/www/nextcloud $ su -m www -c 'php /usr/local/www/nextcloud/occ db:add-missing-columns'
 ```
 
 It's possible that other warnings will appear. Follow the instructions provided in the warning using the syntax we have used for the `occ` command previously to rectify them. Additionally, if things go wrong, refer to the [Nextcloud documentation on restoring from backup](https://docs.nextcloud.com/server/latest/admin_manual/maintenance/restore.html) to restore the files we backed up earlier. Otherwise, refer to the [Nextcloud documentation describing the process](https://docs.nextcloud.com/server/latest/admin_manual/maintenance/manual_upgrade.html) for additional information.
