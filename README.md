@@ -335,6 +335,31 @@ $ sysrc apache24_enable=yes
 $ service apache24 start
 $ pkg install mariadb104-server
 $ sysrc mysql_enable=yes
+```
+
+#### Set up MySQL (MariaDB)
+
+Before continuing, we'll need to modify the MySQL configuration to create a socket in the right location. Open `/usr/local/etc/mysql/my.cnf` as follows:
+
+```bash
+$ nano /usr/local/etc/mysql/my.cnf
+```
+
+Now find the line that shows:
+
+```
+socket  = /var/run/mysql/mysql.sock
+```
+
+Modify it to match the following:
+
+```
+socket  = /tmp/mysql.sock
+```
+
+Now save and exit (Ctrl + X). Now start the MySQL service and go through the set up process:
+
+```bash
 $ service mysql-server start
 $ mysql_secure_installation
 ```
