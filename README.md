@@ -22,6 +22,7 @@ One thing I've noticed a lot of people get hung up on is dataset structure, so t
 
 
 According to the [Nextcloud Documentation](https://docs.nextcloud.com/server/latest/admin_manual/maintenance/restore.html), there are four things required to restore a Nextcloud installation:
+
 1. The configuration directory
 2. The data directory
 3. The database
