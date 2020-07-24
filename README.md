@@ -362,7 +362,7 @@ Now save and exit (Ctrl + X). Now start the MySQL service and go through the set
 
 ```bash
 $ service mysql-server start
-$ mysql_secure_installation
+$ mysql_secure_installation --socket=/tmp/mysql.sock
 ```
 
 NOTE: If you get the following error at this point:
